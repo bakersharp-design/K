@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Roulette Game with Guessing</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #222;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .roulette-container {
+      text-align: center;
+      max-width: 400px;
+    }
+
+    .wheel {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      border: 10px solid #fff;
+      border-radius: 50%;
+      margin: 0 auto;
+      background: conic-gradient(
+        #0f0 0deg 9.72deg,
+        #000 9.72deg 19.44deg,
+        #f00 19.44deg 29.16deg,
+        #000 29.16deg 38.88deg,
+        #0f0 38.88deg 48.6deg,
+        #000 48.6deg 58.32deg,
+        #f00 58.32deg 68.04deg,
+        #000 68.04deg 77.76deg,
+        #0f0 77.76deg 87.48deg,
+        #000 87.48deg 97.2deg,
+        #f00 97.2deg 106.92deg,
+        #000 106.92deg 116.64deg,
+        #0f0 116.64deg 126.36deg,
+        #000 126.36deg 136.08deg,
+        #f00 136.08deg 145.8deg,
+        #000 145.8deg 155.52deg,
+        #0f0 155.52deg 165.24deg,
+        #000 165.24deg 174.96deg,
+        #f00 174.96deg 184.68deg,
+        #000 184.68deg 194.4deg,
+        #0f0 194.4deg 204.12deg,
+        #000 204.12deg 213.84deg,
+        #f00 213.84deg 223.56deg,
+        #000 223.56deg 233.28deg,
+        #0f0 233.28deg 243deg,
+        #000 243deg 252.72deg,
+        #f00 252.72deg 262.44deg,
+        #000 262.44deg 272.16deg,
+        #0f0 272.16deg 281.88deg,
+        #000 281.88deg 291.6deg,
+        #f00 291.6deg 301.32deg,
+        #000 301.32deg 311.04deg,
+        #0f0 311.04deg 320.76deg,
+        #000 320.76deg 330.48deg,
+        #f00 330.48deg 340.2deg,
+        #000 340.2deg 349.92deg,
+        #0f0 349.92deg 360deg
+      );
+      transition: transform 3s ease-out;
+    }
+
+    .ball {
+      width: 20px;
+      height: 20px;
+      background: yellow;
+      border-radius: 50%;
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+
+    .number-labels {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .number-labels div {
+      position: absolute;
+      color: #fff;
+      font-size: 10px;
+      transform-origin: center center;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 30px;
+      font-size: 1.1em;
+      cursor: pointer;
+      border: none;
+      background: #0d6efd;
+      color: white;
+      border-radius: 5px;
+    }
+
+    input[type="number"] {
+      width: 60px;
+      padding: 5px;
+      font-size: 1em;
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .result {
+      margin-top: 15px;
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <div class="roulette-container">
+    <div class="wheel" id="wheel">
+      <div class="ball" id="ball"></div>
+      <div class="number-labels" id="numberLabels"></div>
+    </div>
+
+    <div style="margin-top: 20px;">
+      <label for="guess">Your Guess (0-36):</label><br>
+      <input type="number" id="guess" min="0" max="36" />
+    </div>
+
+    <button id="spinBtn">Spin</button>
+
+    <div class="result" id="result">🎯 Enter a guess and spin the wheel!</div>
+  </div>
+
+  <script>
+    const wheel = document.getElementById('wheel');
+    const result = document.getElementById('result');
+    const spinBtn = document.getElementById('spinBtn');
+    const guessInput = document.getElementById('guess');
+    const numberLabels = document.getElementById('numberLabels');
+
+    const numbers = Array.from({ length: 37 }, (_, i) => i); // 0 to 36
+    const slice = 360 / 37;
+
+    // Place number labels around the wheel
+    numbers.forEach((num, i) => {
+      const label = document.createElement('div');
+      const angle = i * slice;
+      const radius = 130;
+
+      label.style.left = 150 + radius * Math.cos((angle - 90) * Math.PI / 180) + 'px';
+      label.style.top = 150 + radius * Math.sin((angle - 90) * Math.PI / 180) + 'px';
+      label.textContent = num;
+      numberLabels.appendChild(label);
+    });
+
+    let currentRotation = 0;
+
+    spinBtn.addEventListener('click', () => {
+      const userGuess = parseInt(guessInput.value);
+
+      if (isNaN(userGuess) || userGuess < 0 || userGuess > 36) {
+        result.textContent = "⚠️ Please enter a valid number between 0 and 36.";
+        return;
+      }
+
+      const chosenNumber = Math.floor(Math.random() * 37);
+      const angle = chosenNumber * slice;
+
+      const extraSpins = 5 * 360;
+      const spinTo = extraSpins + (360 - angle);
+      currentRotation += spinTo;
+
+      wheel.style.transition = 'transform 3s ease-out';
+      wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+      result.textContent = "Spinning...";
+
+      setTimeout(() => {
+        if (userGuess === chosenNumber) {
+          result.innerHTML = `🎉 You guessed <b>${userGuess}</b> and WON! Ball landed on <b>${chosenNumber}</b>.`;
+        } else {
+          result.innerHTML = `❌ You guessed <b>${userGuess}</b> but lost. Ball landed on <b>${chosenNumber}</b>.`;
+        }
+      }, 3100);
+    });
+  </script>
+</body>
+</html>
